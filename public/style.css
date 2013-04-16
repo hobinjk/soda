@@ -35,6 +35,14 @@ body {
   padding: 0.5em;
 }
 
+#signin {
+  float: right;
+}
+#signout {
+  display: none;
+  float: right;
+}
+
 .user {
   list-style-type: none;
   padding: 0.5em;
@@ -88,9 +96,11 @@ li:hover {
   border-style: none;
   display: inline;
 }
+a {
+  color: black;
+}
 
 #add-user {
-  color: black;
   float: right;
   display: inline;
 }
@@ -108,4 +118,5 @@ li:hover {
 .edit {
   float: right;
   clear: both;
+  display: none;
 }

@@ -10,11 +10,16 @@ var AppRouter = Backbone.Router.extend({
 
 TabItem = Backbone.Model.extend({
   username: "",
-  tab: 0
+  tab: 0,
+  idAttribute: "username",
 });
 
 Tab = Backbone.Collection.extend({
-  url: '/tab'
+  url: '/tab',
+  model: TabItem,
+  comparator: function(s) {
+    return s.get("username");
+  }
 });
 
 AppView = Backbone.View.extend({
@@ -70,7 +75,10 @@ AppView = Backbone.View.extend({
       return;
     }
     var model = models[0];
-    this.tab.remove(model);
+    model.destroy();
+    console.log(model);
+    console.log("url: "+model.url());
+    //this.tab.remove(model);
   },
 
   removeUserCallback: function(model) {
@@ -85,8 +93,8 @@ AppView = Backbone.View.extend({
           .find("select.update-type");
     var amountEl = $(event.target).parent()
           .find("input.update-amount");
-    var amount = parseFloat(amountEl.val());
-    if(amount == NaN) {
+    var amount = Math.round(parseFloat(amountEl.val())*100);
+    if(isNaN(amount)) {
       amountEl.val("ERROR");
       return;
     }
@@ -108,6 +116,7 @@ AppView = Backbone.View.extend({
       console.log("setting");
       endBalance = amount;
     }
+    console.log("trying to save");
     model.set({tab: endBalance});
     model.save();
     //console.log(id);
@@ -122,13 +131,12 @@ AppView = Backbone.View.extend({
   },
   append: function(model) {
     var modelObj = model.toJSON();
-    modelObj.tab = modelObj.tab.toFixed(2);
+    modelObj.tab = (modelObj.tab / 100.0).toFixed(2);
     var el = this.template(modelObj);
     $("#tab").append(el);
-    //TODO inefficient
-    $("li.user").hover(userEnter, userLeave);
+    $("#tab :last-child").hover(userEnter, userLeave);
   },
-
+  //TODO optimize
   change: function() {
     this.render();
   }
@@ -148,16 +156,62 @@ var editTemplate = _.template("<div class=\"edit\"><select class=\"update-type\"
     +  "<input type=\"button\" data-id=\"<%= username %>\" class=\"remove-user\" value=\"remove\"/></div>");
 
 function userEnter(event) {
-  $(".edit").remove();
-  console.log("userEnter");
-  var usern = $(event.target).children(".username").text();
+  var cont = $(event.target);
+  var i = 0;
+  while(!cont.hasClass("user")) {
+    cont = cont.parent();
+    if(i++ > 10) return;
+  }
+  if(cont.children("div.edit").length > 0) return;
+  $(".edit").slideUp(function() $(this).remove());
+  var usern = cont.children(".username").text();
   var el = editTemplate({username: usern});
-  $(event.target).append(el);
+  cont.append(el);
+  $(".edit").slideDown();
 }
 
 function userLeave(event) {
-  $(".edit").remove();
+  $(".edit").slideUp(function() $(this).remove());
 }
+
+$("#signin").click(function() {
+  navigator.id.request();
+});
+$("#signout").click(function() {
+  navigator.id.logout();
+});
+
+//ripped from https://github.com/jbuck/express-persona
+navigator.id.watch({
+  onlogin: function(assertion) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/persona/verify", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.addEventListener("loadend", function(e) {
+      var data = JSON.parse(this.responseText);
+      if (data && data.status === "okay") {
+        console.log("You have been logged in as: " + data.email);
+      }
+    }, false);
+
+    xhr.send(JSON.stringify({
+      assertion: assertion
+    }));
+
+    $("#signin").hide();
+    $("#signout").show();
+  },
+  onlogout: function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/persona/logout", true);
+    xhr.addEventListener("loadend", function(e) {
+      console.log("You have been logged out");
+    });
+    xhr.send();
+    $("#signin").show();
+    $("#signout").hide();
+  }
+});
 
 })(jQuery);
 

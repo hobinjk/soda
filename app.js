@@ -1,30 +1,42 @@
 var express = require('express');
 var app = express();
 var util = require('util');
+var _ = require('underscore');
+var sodadb = require("./sodadb.js");
 
 var globalId = 0;
-var tab = [
-  {
-    id: globalId++,
-    username: "hobinjk",
-    tab: 0
-  },
-];
-
 app.configure(function() {
   app.set('port', process.env.port || 3000);
-  app.use(express.logger('dev'));
-  app.use(express.bodyParser());
-  app.use(express.static(__dirname+'/public'));
+  app //.use(express.logger('dev'))
+     .use(express.bodyParser())
+     .use(express.static(__dirname+'/public'))
+     .use(express.cookieParser())
+     .use(express.session({
+       secret: "kndsfaksjdfhkabsdkfbkajsd"
+     }));
 });
 
-
+require("express-persona")(app, {
+  audience: "http://localhost:3000",
+});
+function guard(fn) {
+  return function(req, res) {
+    console.log("email: "+req.session.email);
+    if(!req.session.email || req.session.email !== "hobinjk@mit.edu") {
+      res.send(403);
+      return;
+    }
+    return fn(req,res);
+  };
+}
 app.get('/tab', function(req, res) {
-  res.send(tab);
-  console.log("sending: "+util.inspect(tab));
+  sodadb.getFullTab(function(tab) {
+    //console.log("sending: "+util.inspect(tab));
+    res.send(tab);
+  });
 });
 
-function getTabByUsername(name) {
+/*function getTabByUsername(name) {
   for(var i = 0; i < tab.length; i++)
     if(tab[i].username == name) return tab[i];
 }
@@ -40,32 +52,63 @@ function setTabById(id, newTab) {
     tab[i] = newTab;
     return;
   }
-}
+}*/
     
 
 app.get('/tab/:username', function(req, res) {
-  res.send(getTabByUsername(req.params.username));
-});
-
-app.post('/tab', function(req, res) {
-  var t = req.body;
-  t.id = globalId++;
-  console.log("posted: "+util.inspect(t));
-  tab.push(t);
-  res.send(t);
-});
-
-app.delete('/tab/:username', function(req, res) {
-  tab = _.reject(tab, function(t) {
-    return t.username == req.params.username;
+  sodadb.getTabByUsername(req.params.username, function(tab) {
+    res.send(tab);
   });
-  res.send(req.body);
 });
-app.put('/tab/:id', function(req, res) {
-  console.log("put: "+util.inspect(req.body));
-  var t = getTabById(req.params.id);
-  setTabById(t.id, req.body);
+
+app.put('/tab', guard(function(req, res) {
+  var t = req.body;
+  console.log("put: "+util.inspect(t));
+  res.send(t);
+  sodadb.putTab(t);
+}));
+
+app.post('/tab', guard(function(req, res) {
+  var t = req.body;
+  console.log("post: "+util.inspect(t));
+  res.send(t);
+  sodadb.putTab(t);
+}));
+
+app.delete('/tab/:username', guard(function(req, res) {
+  console.log("deleting: "+req.params.username);
   res.send(req.body);
+  sodadb.deleteTab({username: req.params.username});
+  /*tab = _.reject(tab, function(t) {
+    return t.username == req.params.username;
+  });*/
+}));
+
+app.put('/tab/:username', guard(function(req, res) {
+  console.log("put: "+util.inspect(req.body));
+  sodadb.getTabByUsername(req.params.username, function(tab) {
+    if(tab) {
+      console.log("normal");
+      sodadb.updateTab(req.body);
+    } else {
+      console.log("fancy fallback");
+      sodadb.putTab(req.body);
+    }
+    res.send(req.body);
+  });
+}));
+
+
+app.post('/tab', guard(function(req, res) {
+  console.log("post/:"+util.inspect(req.body));
+}));
+
+var memwatch = require('memwatch');
+var hd = new memwatch.HeapDiff();
+
+memwatch.on('leak', function(stats) {
+  console.log(JSON.stringify(hd.end(), null, 2));
+  hd = new memwatch.HeapDiff();
 });
 
 app.listen(3000);
