@@ -1,0 +1,111 @@
+@import url(http://fonts.googleapis.com/css?family=Signika+Negative);
+
+#wrapper {
+  text-align: center;
+  padding: 0;
+  margin: 0;
+}
+
+#center {
+  text-align: left;
+  width: 400px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+body {
+  font-size: large;
+  font-family: 'Signika Negative', sans-serif;
+  background-color: black;
+  padding: 0;
+  margin: 0;
+}
+#header {
+  width: 100%;
+  background-color: #f03030;
+  padding: 0.5em;
+  padding-bottom: 0.65em;
+}
+
+#add-user-box {
+  width: 100%;
+  float: left;
+  display: inline-block;
+  background-color: #4040f0;
+  padding: 0.5em;
+}
+
+.user {
+  list-style-type: none;
+  padding: 0.5em;
+  margin: 0;
+  float: left;
+  width: 100%;
+}
+
+.username {
+  padding-right: 0.5em;
+  width: 100%;
+}
+
+.tab {
+  float: right;
+}
+
+li:nth-child(2n) {
+  background-color: #ffa400;
+}
+li:nth-child(2n+1) {
+  background-color: #ffd022;
+}
+li:hover {
+  /* background-color: #fffab4; */
+}
+#tab {
+  padding-left: 0px;
+  margin: 0;
+}
+
+.update-type {
+}
+
+.update-amount {
+  width: 3em;
+  direction: rtl;
+}
+
+
+.update-user {
+}
+
+.remove-user {
+}
+
+#username-input {
+  font-size: large;
+  font-family: 'Signika Negative', sans-serif;
+  color: black;
+  border-style: none;
+  display: inline;
+}
+
+#add-user {
+  color: black;
+  float: right;
+  display: inline;
+}
+
+#filter {
+  font-size: large;
+  font-family: 'Signika Negative', sans-serif;
+  border-style: none;
+  float: right;
+  direction: rtl;
+  width: 10em;
+  display: inline;
+} 
+
+.edit {
+  float: right;
+  clear: both;
+}

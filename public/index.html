@@ -2,12 +2,20 @@
 <html>
 <head>
   <title>Soda Tab</title>
+  <link rel="stylesheet" type="text/css" href="style.css" media="all">
 </head>
 <body>
-  <ul id="tab">
-  </ul>
-  <input type="text" id="username-input"/>
-  <input type="button" id="add-user" value="add user"/>
+  <div id="wrapper">
+    <div id="center">
+      <div id="header">soda tab <!-- <input id="filter" type="text" placeholder="filter"/> --></div>
+      <ul id="tab">
+      </ul>
+      <div id="add-user-box">
+        <input type="text" id="username-input" placeholder="username"/>
+        <a href="#" id="add-user">add user</a>
+      </div>
+    </div>
+  </div>
   <script src="jquery-1.9.1.js"></script>
   <script src="underscore.js"></script>
 

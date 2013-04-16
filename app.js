@@ -29,6 +29,20 @@ function getTabByUsername(name) {
     if(tab[i].username == name) return tab[i];
 }
 
+function getTabById(id) {
+  for(var i = 0; i < tab.length; i++)
+    if(tab[i].id == id) return tab[i];
+}
+
+function setTabById(id, newTab) {
+  for(var i = 0; i < tab.length; i++) {
+    if(tab[i].id != id) continue;
+    tab[i] = newTab;
+    return;
+  }
+}
+    
+
 app.get('/tab/:username', function(req, res) {
   res.send(getTabByUsername(req.params.username));
 });
@@ -47,10 +61,11 @@ app.delete('/tab/:username', function(req, res) {
   });
   res.send(req.body);
 });
-app.put('/tab/:username', function(req, res) {
-  var t = getTabByUsername(req.params.username);
-  t = req.body;
-  res.send(t);
+app.put('/tab/:id', function(req, res) {
+  console.log("put: "+util.inspect(req.body));
+  var t = getTabById(req.params.id);
+  setTabById(t.id, req.body);
+  res.send(req.body);
 });
 
 app.listen(3000);
