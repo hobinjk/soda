@@ -74,16 +74,19 @@ li:hover {
   margin: 0;
 }
 
-.update-type {
-}
-
 .update-amount {
-  width: 3em;
-  direction: rtl;
+  font-size: large;
+  font-family: 'Signika Negative', sans-serif;
+  color: black;
+  border-style: none;
+  display: inline-block;
+  width: 2.25em;
+  height: 1.4em;
 }
 
 
 .update-user {
+  padding: 0 6px;
 }
 
 .remove-user {
@@ -120,3 +123,24 @@ a {
   clear: both;
   display: none;
 }
+
+.option {
+  display: inline-block;
+  background-color: #f0ffb0;
+  margin-right: 0.25em;
+  padding: 2px 4px;
+  cursor: default;
+  color: #336633;
+}
+
+.option:hover {
+  background-color: #80ff40;
+  color: black;
+}
+
+.option.selected {
+  background-color: #60f000;
+  color: black;
+}
+
+

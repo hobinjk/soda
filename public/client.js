@@ -25,7 +25,7 @@ Tab = Backbone.Collection.extend({
 AppView = Backbone.View.extend({
   el: $("body"),
   template: _.template(
-     "<li class=\"user\">"
+     "<li class=\"user\" id=\"<%= username %>\">"
     +  "<span class=\"username\"><%= username %></span>"
     +  "<span class=\"tab\"><%= tab %></span>"
     +"</li>"
@@ -90,7 +90,7 @@ AppView = Backbone.View.extend({
     var username = $(event.target).data("id");
     console.log("username: "+username);
     var type = $(event.target).parent()
-          .find("select.update-type");
+          .find(".selected").attr("id");
     var amountEl = $(event.target).parent()
           .find("input.update-amount");
     var amount = Math.round(parseFloat(amountEl.val())*100);
@@ -104,7 +104,6 @@ AppView = Backbone.View.extend({
     console.log("tab: "+model.attributes.tab);
     var endBalance = model.attributes.tab;
     if(!endBalance) endBalance = 0;
-    type = type.val();
     console.log("type: "+type+", amount: "+amount+", thing: "+endBalance);
     if(type === "credit") {
       console.log("creditting");
@@ -136,9 +135,9 @@ AppView = Backbone.View.extend({
     $("#tab").append(el);
     $("#tab :last-child").hover(userEnter, userLeave);
   },
-  //TODO optimize
-  change: function() {
-    this.render();
+  change: function(model) {
+    var el = $("#"+model.attributes.username);
+    el.children(".tab").text((model.attributes.tab/100.0).toFixed(2));
   }
 
 });
@@ -146,14 +145,15 @@ AppView = Backbone.View.extend({
 window.appview = new AppView;
 window.appview.tab.fetch();
 
-var editTemplate = _.template("<div class=\"edit\"><select class=\"update-type\">"
-    +    "<option value=\"credit\">credit</option>"
-    +    "<option value=\"charge\">charge</option>"
-    +    "<option value=\"set\">set</option"
-    +  "</select>"
+var editTemplate = _.template("<div class=\"edit\"><span class=\"update-types\">"
+    +    "<div class=\"option selected\" id=\"charge\">charge</div>"
+    +    "<div class=\"option\" id=\"credit\">credit</div>"
+    +    "<div class=\"option\" id=\"set\">set</div>"
+    +  "</span>"
     +  "<input type=\"text\" placeholder=\"0.00\" class=\"update-amount\"/>"
-    +  "<input type=\"button\" data-id=\"<%= username %>\" class=\"update-user\" value=\"update\"/>"
-    +  "<input type=\"button\" data-id=\"<%= username %>\" class=\"remove-user\" value=\"remove\"/></div>");
+    +  "<a href=\"#\" data-id=\"<%= username %>\" class=\"update-user\">update</a>"
+    +  "<a href=\"#\" data-id=\"<%= username %>\" class=\"remove-user\">remove</a>"
+    +  "</div>");
 
 function userEnter(event) {
   var cont = $(event.target);
@@ -168,6 +168,11 @@ function userEnter(event) {
   var el = editTemplate({username: usern});
   cont.append(el);
   $(".edit").slideDown();
+  $(".option").click(function(evt) {
+    $(".selected").removeClass("selected");
+    $(evt.target).addClass("selected");
+  });
+
 }
 
 function userLeave(event) {
