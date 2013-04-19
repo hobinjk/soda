@@ -38,7 +38,8 @@ AppView = Backbone.View.extend({
         'updateUser',
         'render',
         'append',
-        'change'
+        'change',
+        'error'
     );
     console.log("initializing this biz");
     this.tab.bind('refresh', this.render);
@@ -59,13 +60,18 @@ AppView = Backbone.View.extend({
     var username = $("#username-input").val();
     var tabItemModel = new TabItem({username: username, tab: 0});
     this.tab.add( tabItemModel );
-    tabItemModel.save();
+    tabItemModel.save({}, {error: this.error});
   },
 
   addUserCallback: function(model) {
     console.log("adding user callback");
   },
-
+  error: function(model, xhr, options) {
+    alert("Error! "+xhr.status+" "+xhr.responseText+". Are you logged in?");
+    console.log(xhr);
+    this.tab.set(model, model);
+    this.render();
+  },
   removeUser: function(event) {
     var tabItemId = $(event.target).data("id");
     console.log("removing user with id: "+tabItemId);
@@ -75,7 +81,7 @@ AppView = Backbone.View.extend({
       return;
     }
     var model = models[0];
-    model.destroy();
+    model.destroy({error: this.error});
     console.log(model);
     console.log("url: "+model.url());
     //this.tab.remove(model);
@@ -116,8 +122,7 @@ AppView = Backbone.View.extend({
       endBalance = amount;
     }
     console.log("trying to save");
-    model.set({tab: endBalance});
-    model.save();
+    model.save({tab: endBalance}, {error: this.error});
     //console.log(id);
     //event.preventDefault();
   },
@@ -178,45 +183,6 @@ function userEnter(event) {
 function userLeave(event) {
   $(".edit").slideUp(function() $(this).remove());
 }
-
-$("#signin").click(function() {
-  navigator.id.request();
-});
-$("#signout").click(function() {
-  navigator.id.logout();
-});
-
-//ripped from https://github.com/jbuck/express-persona
-navigator.id.watch({
-  onlogin: function(assertion) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/persona/verify", true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.addEventListener("loadend", function(e) {
-      var data = JSON.parse(this.responseText);
-      if (data && data.status === "okay") {
-        console.log("You have been logged in as: " + data.email);
-      }
-    }, false);
-
-    xhr.send(JSON.stringify({
-      assertion: assertion
-    }));
-
-    $("#signin").hide();
-    $("#signout").show();
-  },
-  onlogout: function() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/persona/logout", true);
-    xhr.addEventListener("loadend", function(e) {
-      console.log("You have been logged out");
-    });
-    xhr.send();
-    $("#signin").show();
-    $("#signout").hide();
-  }
-});
 
 })(jQuery);
 

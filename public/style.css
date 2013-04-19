@@ -80,8 +80,10 @@ li:hover {
   color: black;
   border-style: none;
   display: inline-block;
-  width: 2.25em;
-  height: 1.4em;
+  width: 2em;
+  padding: 1px 4px;
+  min-height: 1.4em;
+  line-height: 1.4em;
 }
 
 
