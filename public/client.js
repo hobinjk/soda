@@ -68,22 +68,22 @@ AppView = Backbone.View.extend({
   },
   error: function(model, xhr, options) {
     alert("Error! "+xhr.status+" "+xhr.responseText+". Are you logged in?");
-    console.log(xhr);
-    this.tab.set(model, model);
-    this.render();
+    console.log(model);
+    this.tab.fetch({reset:true, success: function(){window.appview.render();}});//set(model, model);
   },
   removeUser: function(event) {
-    var tabItemId = $(event.target).data("id");
-    console.log("removing user with id: "+tabItemId);
-    var models = this.tab.where({"username": tabItemId});
+    var username = $(event.target).data("id");
+    var wantTo = window.confirm("Are you sure you want to remove "
+        +username+"?");
+    if(!wantTo) return;
+    console.log("removing user with id: "+username);
+    var models = this.tab.where({"username": username});
     if(models.length == 0) {
       console.log("there were none");
       return;
     }
     var model = models[0];
     model.destroy({error: this.error});
-    console.log(model);
-    console.log("url: "+model.url());
     //this.tab.remove(model);
   },
 
@@ -126,22 +126,52 @@ AppView = Backbone.View.extend({
     //console.log(id);
     //event.preventDefault();
   },
+
+  rendered: false,
+
   render: function() {
     console.log("rendering");
-    $("#tab").empty();
+    var start = Date.now()
+    //$("#tab").empty();
     this.tab.each(function(model) {
       this.append(model);
     }, this);
+    $(".user").hover(userEnter, userLeave);
+    console.log("rendering takes "+(Date.now() - start)+" seconds");
+    rendered = true;
   },
   append: function(model) {
     var modelObj = model.toJSON();
     modelObj.tab = (modelObj.tab / 100.0).toFixed(2);
-    var el = this.template(modelObj);
-    $("#tab").append(el);
-    $("#tab :last-child").hover(userEnter, userLeave);
+    if(!this.rendered) {
+      $("#tab").append(this.template(modelObj));
+      return;
+    }
+    var el; 
+    if(el = document.getElementById(modelObj.username)) {
+      console.log("being lazy");
+      $(el).children(".tab").text(modelObj.tab);
+      return;
+    }
+    console.log("tryharding");
+    var tab = $("#tab");
+    var insertBefore;
+    var good = false;
+    for(var i = 0; i < tab.children().length; i++) {
+      insertBefore = tab.children()[i];
+      if(insertBefore.id > modelObj.username) {
+        good = true;
+        break;
+      }
+    }
+    if(good)
+      $(insertBefore).before(this.template(modelObj));
+    else
+      tab.append(this.template(modelObj));
+    $(document.getElementById(modelObj.username)).hover(userEnter, userLeave);
   },
   change: function(model) {
-    var el = $("#"+model.attributes.username);
+    var el = $(document.getElementById(model.attributes.username));
     el.children(".tab").text((model.attributes.tab/100.0).toFixed(2));
   }
 
@@ -194,14 +224,16 @@ $(document).keydown(function(evt) {
     //the keys have expired
     keyBuffer = '';
   }
+  if(evt.ctrlKey) return;
+  if(evt.altKey) return;
+  if(evt.metaKey) return;
+  if(evt.shiftKey) return;
+
   lastKey = Date.now();
-  console.log(evt);
   keyBuffer += String.fromCharCode(evt.keyCode).toLowerCase(); //debatable
-  console.log("keyBuffer: "+keyBuffer);
   var mod = window.appview.tab.find(function(m) {
     return m.get("username").toLowerCase().startsWith(keyBuffer);
   });
-  console.log(mod);
   if(!mod) return;
   $.scrollTo($("#"+mod.get("username")));
 });
