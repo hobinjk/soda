@@ -184,5 +184,27 @@ function userLeave(event) {
   $(".edit").slideUp(function() $(this).remove());
 }
 
+var keyBuffer = '';
+var lastKey = 0;
+var keyPersist = 600;
+
+$(document).keydown(function(evt) {
+  if(document.activeElement.tagName.toLowerCase() !== "body") return;
+  if(Date.now() - lastKey > keyPersist) {
+    //the keys have expired
+    keyBuffer = '';
+  }
+  lastKey = Date.now();
+  console.log(evt);
+  keyBuffer += String.fromCharCode(evt.keyCode).toLowerCase(); //debatable
+  console.log("keyBuffer: "+keyBuffer);
+  var mod = window.appview.tab.find(function(m) {
+    return m.get("username").toLowerCase().startsWith(keyBuffer);
+  });
+  console.log(mod);
+  if(!mod) return;
+  $.scrollTo($("#"+mod.get("username")));
+});
+
 })(jQuery);
 
